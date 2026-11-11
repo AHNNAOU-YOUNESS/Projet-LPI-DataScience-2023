@@ -1,0 +1,685 @@
+\documentclass[11pt,a4paper]{article}
+
+% ------------------------------------------------
+% PACKAGES
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{eso-pic}
+
+% ------------------------------------------------
+% PAGE DESIGN
+% ------------------------------------------------
+\geometry{
+    left=2.5cm,
+    right=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+\onehalfspacing
+
+\definecolor{navy}{RGB}{25,50,85}
+\definecolor{blue}{RGB}{45,100,155}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navy,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\titleformat{\section}
+{\Large\bfseries\color{navy}}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\large\bfseries\color{blue}}
+{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Projet Data Science — LPI 2023}
+\fancyhead[R]{ENCG Settat}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{14pt}
+
+% ------------------------------------------------
+% BORDURE DISCRETE SUR TOUTES LES PAGES
+% ------------------------------------------------
+\AddToShipoutPictureBG{%
+    \begin{tikzpicture}[remember picture,overlay]
+        \draw[navy,line width=0.6pt]
+        ([xshift=0.9cm,yshift=-0.9cm]current page.north west)
+        rectangle
+        ([xshift=-0.9cm,yshift=0.9cm]current page.south east);
+    \end{tikzpicture}%
+}
+
+% ------------------------------------------------
+% FIGURE COMMAND
+% ------------------------------------------------
+\newcommand{\projectfigure}[3]{
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/#1}
+    \caption{#2}
+    \label{#3}
+\end{figure}
+}
+
+% ------------------------------------------------
+% DOCUMENT
+% ------------------------------------------------
+\begin{document}
+
+% =================================================
+% PAGE DE GARDE
+% =================================================
+
+\begin{titlepage}
+\centering
+
+\vspace*{1cm}
+
+{\Large \textbf{ÉCOLE NATIONALE DE COMMERCE ET DE GESTION}}\\[0.3cm]
+{\large ENCG SETTAT}\\[1.5cm]
+
+{\color{navy}\rule{\textwidth}{1.5pt}}\\[0.5cm]
+
+{\Huge\bfseries Analyse de la performance}\\[0.2cm]
+{\Huge\bfseries logistique des pays}\\[0.5cm]
+
+{\Large À partir du Logistics Performance Index (LPI) 2023}\\[0.5cm]
+
+{\color{navy}\rule{\textwidth}{1.5pt}}\\[1.5cm]
+
+{\Large \textbf{Projet de Data Science}}\\[1cm]
+
+\begin{tabular}{rl}
+\textbf{Réalisé par :} & AHNNAOU Youness\\
+                       & AIT BOUSSALEM Israa\\[0.5cm]
+\textbf{Encadré par :} & Abderrahim Larhlimi\\[0.3cm]
+\textbf{Formation :} & Master 1 -- Commerce International\\[0.3cm]
+\textbf{Établissement :} & ENCG Settat\\[0.3cm]
+\textbf{Année universitaire :} & 2026--2027\\
+\end{tabular}
+
+\vfill
+
+{\large Année universitaire 2026--2027}
+
+\end{titlepage}
+
+% =================================================
+% RESUME
+% =================================================
+
+\pagenumbering{roman}
+
+\section*{Résumé}
+\addcontentsline{toc}{section}{Résumé}
+
+Ce projet porte sur l'analyse de la performance logistique des pays
+à partir des données du Logistics Performance Index (LPI) 2023
+publiées par la Banque mondiale.
+
+L'objectif est d'identifier des groupes de pays présentant des
+caractéristiques logistiques similaires en mobilisant des méthodes
+de clustering non supervisé.
+
+L'étude repose sur six composantes du LPI : les douanes,
+les infrastructures, les expéditions internationales, la qualité
+des services logistiques, le suivi et la traçabilité, ainsi que
+la ponctualité.
+
+Après les étapes de préparation des données, d'analyse exploratoire
+et de standardisation, plusieurs configurations de clustering ont
+été étudiées. Le modèle K-Means avec trois clusters a finalement
+été retenu pour son intérêt en matière d'interprétation économique.
+
+Les résultats permettent de distinguer trois catégories de pays :
+à faible performance logistique, à performance intermédiaire et
+à performance élevée.
+
+\vspace{0.5cm}
+
+\noindent
+\textbf{Mots-clés :} Data Science, performance logistique,
+LPI 2023, clustering, K-Means, ACP, commerce international.
+
+\newpage
+
+\tableofcontents
+\newpage
+
+\listoffigures
+\newpage
+
+\pagenumbering{arabic}
+
+% =================================================
+% INTRODUCTION
+% =================================================
+
+\section*{Introduction générale}
+\addcontentsline{toc}{section}{Introduction générale}
+
+Dans un contexte marqué par l'intensification des échanges
+internationaux, la performance logistique constitue un facteur
+important de compétitivité pour les économies nationales.
+La capacité d'un pays à assurer le transport, le suivi et la
+livraison des marchandises influence directement la fluidité
+des échanges commerciaux.
+
+Les différences entre les systèmes logistiques nationaux peuvent
+être étudiées à travers le Logistics Performance Index (LPI),
+un indicateur publié par la Banque mondiale permettant d'évaluer
+plusieurs dimensions de la performance logistique.
+
+Dans ce contexte, notre projet mobilise des méthodes de Data
+Science afin d'identifier des groupes de pays présentant des
+profils logistiques comparables.
+
+\subsection*{Problématique}
+
+Comment les pays peuvent-ils être regroupés en fonction des six
+composantes de leur performance logistique, selon les données
+du Logistics Performance Index 2023 ?
+
+\subsection*{Objectifs du projet}
+
+Les principaux objectifs sont :
+
+\begin{itemize}
+    \item Comprendre les différentes dimensions de la performance
+    logistique.
+    \item Explorer et préparer les données du LPI 2023.
+    \item Identifier des groupes de pays présentant des profils
+    logistiques similaires.
+    \item Évaluer les résultats de plusieurs méthodes de clustering.
+    \item Interpréter les groupes obtenus dans une perspective
+    économique et commerciale.
+\end{itemize}
+
+% =================================================
+% CHAPITRE 1
+% =================================================
+
+\section{Cadre conceptuel : le Logistics Performance Index}
+
+\subsection{Présentation du LPI}
+
+Le Logistics Performance Index est un indicateur développé
+par la Banque mondiale afin d'évaluer la performance des systèmes
+logistiques des pays.
+
+Il permet notamment d'étudier les conditions dans lesquelles
+les marchandises circulent à travers les frontières et au sein
+des chaînes logistiques internationales.
+
+\subsection{Les six composantes étudiées}
+
+Notre analyse repose sur les six dimensions suivantes :
+
+\begin{enumerate}
+    \item \textbf{Customs :} efficacité des procédures douanières.
+    \item \textbf{Infrastructure :} qualité des infrastructures
+    de transport et de logistique.
+    \item \textbf{International Shipments :} facilité d'organisation
+    des expéditions internationales.
+    \item \textbf{Logistics Competence and Quality :} qualité et
+    compétence des services logistiques.
+    \item \textbf{Tracking and Tracing :} capacité de suivi et de
+    traçabilité des expéditions.
+    \item \textbf{Timeliness :} respect des délais de livraison.
+\end{enumerate}
+
+Les scores de ces composantes sont exprimés sur une échelle
+allant de 1 à 5.
+
+% =================================================
+% CHAPITRE 2
+% =================================================
+
+\section{Présentation et préparation des données}
+
+\subsection{Source des données}
+
+Les données utilisées proviennent de la Banque mondiale et
+correspondent au Logistics Performance Index 2023.
+
+Le fichier initial contient plusieurs observations et variables
+relatives aux pays, aux indicateurs et aux périodes étudiées.
+
+L'analyse a été centrée sur les observations de l'année 2023
+et sur les six composantes du LPI.
+
+\subsection{Sélection des observations et des variables}
+
+Après les opérations de filtrage et de transformation,
+un tableau structuré a été constitué avec une observation
+par pays et six variables quantitatives.
+
+L'échantillon final comprend 139 pays.
+
+Les identifiants des pays ont été conservés pour l'interprétation
+des résultats, mais n'ont pas été utilisés comme variables
+d'entrée du clustering.
+
+\subsection{Nettoyage et vérification}
+
+Plusieurs contrôles ont été effectués :
+
+\begin{itemize}
+    \item Vérification des valeurs manquantes.
+    \item Détection des éventuels doublons.
+    \item Vérification de la cohérence des scores.
+    \item Contrôle de l'échelle de mesure des variables.
+\end{itemize}
+
+Aucune valeur manquante n'a été détectée dans les six variables
+retenues pour la segmentation.
+
+\subsection{Standardisation}
+
+Les six variables possèdent la même échelle de mesure.
+Une standardisation a néanmoins été appliquée afin de centrer
+et réduire les variables avant le clustering.
+
+La méthode StandardScaler transforme chaque variable selon :
+
+\[
+Z = \frac{X-\mu}{\sigma}
+\]
+
+où $\mu$ représente la moyenne et $\sigma$ l'écart-type
+de la variable.
+
+Cette transformation permet de rendre les variables
+comparables dans le calcul des distances.
+
+% =================================================
+% CHAPITRE 3
+% =================================================
+
+\section{Analyse exploratoire des données}
+
+L'analyse exploratoire vise à comprendre la distribution des
+scores logistiques et les relations entre les six composantes.
+
+\subsection{Distribution des scores}
+
+L'étude des distributions permet d'observer les différences
+de niveaux de performance entre les pays.
+
+\projectfigure
+{figure_01.png}
+{Distribution des scores des six composantes du LPI.}
+{fig:distribution}
+
+\projectfigure
+{figure_02.png}
+{Dispersion des scores des six composantes du LPI à travers les pays (diagrammes en boîte).}
+{fig:boxplots}
+
+\subsection{Relations entre les composantes}
+
+L'étude des corrélations permet d'identifier les relations
+entre les différentes dimensions de la performance logistique.
+
+\projectfigure
+{figure_03.png}
+{Matrice de corrélation des six composantes.}
+{fig:correlation}
+
+Ces relations permettent de mieux comprendre les liens entre
+les infrastructures, les procédures douanières et la qualité
+des services logistiques.
+
+\projectfigure
+{figure_04.png}
+{Scores moyens des six composantes du LPI en 2023.}
+{fig:average-scores}
+
+\projectfigure
+{figure_05.png}
+{Les dix pays présentant les scores moyens les plus élevés sur les six composantes du LPI.}
+{fig:top10}
+
+\projectfigure
+{figure_06.png}
+{Les dix pays présentant les scores moyens les plus faibles sur les six composantes du LPI.}
+{fig:bottom10}
+
+% =================================================
+% CHAPITRE 4
+% =================================================
+
+\section{Méthodologie de clustering}
+
+\subsection{Principe du clustering non supervisé}
+
+Le clustering est une méthode d'apprentissage non supervisé
+qui consiste à regrouper les observations présentant des
+caractéristiques similaires.
+
+Contrairement à l'apprentissage supervisé, cette approche
+ne nécessite pas de variable cible prédéfinie.
+
+Dans notre étude, les pays sont regroupés à partir de leurs
+scores sur les six composantes du LPI.
+
+\subsection{Algorithme K-Means}
+
+K-Means est un algorithme de clustering qui cherche à répartir
+les observations en $K$ groupes en minimisant la somme des
+distances au carré entre les observations et le centre de
+leur cluster.
+
+L'objectif est de construire des groupes relativement homogènes
+à l'intérieur et distincts les uns des autres.
+
+\projectfigure
+{figure_07.png}
+{Répartition des pays selon les clusters K-Means, illustrée par les scores en douanes et en infrastructures.}
+{fig:clusters-customs-infra}
+
+\subsection{Clustering hiérarchique}
+
+Une méthode de clustering hiérarchique a également été étudiée
+afin de comparer les résultats obtenus avec ceux de K-Means.
+
+Cette approche permet de construire progressivement des groupes
+en fonction de la proximité entre les observations.
+
+\subsection{Détermination du nombre de clusters}
+
+Plusieurs valeurs de $K$ ont été étudiées afin d'identifier
+une segmentation pertinente.
+
+Les méthodes d'évaluation mobilisées comprennent :
+
+\begin{itemize}
+    \item La méthode du coude (Elbow Method).
+    \item Le coefficient de silhouette.
+    \item L'indice de Davies-Bouldin.
+    \item L'indice de Calinski-Harabasz.
+\end{itemize}
+
+\projectfigure
+{figure_10.png}
+{Synthèse graphique des critères d'évaluation et de stabilité des configurations K-Means.}
+{fig:elbow}
+
+% =================================================
+% CHAPITRE 5
+% =================================================
+
+\section{Évaluation et choix du modèle final}
+
+La comparaison des configurations étudiées montre que le modèle
+à deux clusters présente de meilleurs résultats selon les
+métriques statistiques examinées.
+
+Pour $K=2$, le coefficient de silhouette atteint 0,565,
+l'indice de Davies-Bouldin est de 0,604 et l'indice de
+Calinski-Harabasz est de 317,363.
+
+Pour $K=3$, le coefficient de silhouette est de 0,432,
+l'indice de Davies-Bouldin est de 0,780 et l'indice de
+Calinski-Harabasz est de 276,246.
+
+Ainsi, la configuration à deux clusters présente une meilleure
+séparation statistique selon ces indicateurs.
+
+Toutefois, notre objectif ne se limite pas à obtenir la
+meilleure séparation mathématique. Nous souhaitons également
+identifier des catégories de performance interprétables
+sur le plan économique.
+
+C'est pourquoi nous retenons finalement K-Means avec trois
+clusters comme modèle principal d'interprétation.
+
+Ce choix permet de distinguer trois niveaux de performance :
+faible, intermédiaire et élevée.
+
+% =================================================
+% CHAPITRE 6
+% =================================================
+
+\section{Résultats et interprétation économique}
+
+\subsection{Présentation de la segmentation finale}
+
+Le modèle K-Means avec trois clusters a été retenu pour
+l'analyse économique.
+
+La répartition obtenue est la suivante :
+
+\begin{table}[H]
+\centering
+\caption{Répartition des pays selon les trois clusters}
+\begin{tabular}{lrr}
+\toprule
+Catégorie & Nombre de pays & Pourcentage \\
+\midrule
+Faible performance & 61 & 43,88\% \\
+Performance intermédiaire & 41 & 29,50\% \\
+Performance élevée & 37 & 26,62\% \\
+\midrule
+Total & 139 & 100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Visualisation des groupes}
+
+L'Analyse en Composantes Principales (ACP) a été utilisée
+pour représenter les pays dans un espace de dimension réduite.
+
+\projectfigure
+{figure_08.png}
+{Variance expliquée et variance cumulée par les composantes principales.}
+{fig:pca-variance}
+
+Elle facilite la visualisation des groupes obtenus tout en
+préservant une grande partie de l'information contenue dans
+les variables initiales.
+
+\projectfigure
+{figure_09.png}
+{Projection des pays selon les deux premières composantes principales.}
+{fig:pca}
+
+
+\subsection{Profils logistiques moyens}
+
+Le tableau suivant présente les scores moyens observés pour
+chaque catégorie.
+
+\begin{table}[H]
+\centering
+\caption{Profils moyens des trois catégories}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Catégorie & Douanes & Infra. & Expéd. & Qualité & Suivi & Délais \\
+\midrule
+Faible & 2,264 & 2,284 & 2,464 & 2,446 & 2,428 & 2,746 \\
+Intermédiaire & 2,851 & 2,995 & 3,061 & 3,120 & 3,180 & 3,346 \\
+Élevée & 3,627 & 3,892 & 3,535 & 3,889 & 3,935 & 3,946 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\projectfigure
+{figure_11.png}
+{Comparaison des scores moyens des composantes par catégorie.}
+{fig:profiles}
+
+\projectfigure
+{figure_12.png}
+{Segmentation finale des pays avec K-Means à trois clusters projetée sur le plan factoriel de l'ACP.}
+{fig:pca-final}
+
+\subsection{Interprétation économique}
+
+\textbf{Catégorie à faible performance :}
+
+Cette catégorie regroupe 61 pays. Les scores moyens sont
+relativement faibles sur les six dimensions, avec des niveaux
+particulièrement bas pour les douanes et les infrastructures.
+
+Ces résultats mettent en évidence des difficultés potentielles
+liées à l'efficacité des procédures et à la qualité des
+équipements logistiques.
+
+\textbf{Catégorie à performance intermédiaire :}
+
+Cette catégorie comprend 41 pays. Elle présente des scores
+supérieurs à ceux du groupe à faible performance, mais reste
+en retrait par rapport au groupe le plus performant.
+
+Elle correspond à des systèmes logistiques présentant un
+niveau de développement intermédiaire.
+
+\textbf{Catégorie à performance élevée :}
+
+Cette catégorie rassemble 37 pays. Elle se caractérise par
+des scores moyens élevés dans les six dimensions étudiées.
+
+Les résultats traduisent une meilleure performance globale
+des systèmes logistiques de ces pays.
+
+\subsection{Analyse complémentaire des profils}
+
+La comparaison des profils permet d'identifier les dimensions
+sur lesquelles les écarts entre catégories sont les plus
+importants.
+
+Cette analyse peut aider à orienter les réflexions sur les
+priorités d'amélioration des systèmes logistiques nationaux.
+
+\projectfigure
+{figure_13.png}
+{Heatmap des profils logistiques standardisés par catégorie.}
+{fig:heatmap}
+
+% =================================================
+% DISCUSSION
+% =================================================
+
+\section{Discussion et limites de l'étude}
+
+Les résultats obtenus mettent en évidence l'existence de
+plusieurs profils logistiques parmi les pays étudiés.
+
+La segmentation en trois catégories facilite la lecture
+économique des différences entre systèmes logistiques.
+
+Néanmoins, certaines limites doivent être prises en compte.
+
+Premièrement, le clustering dépend du choix des variables
+et de la méthode de standardisation.
+
+Deuxièmement, les résultats dépendent du nombre de clusters
+retenu. La configuration à deux groupes présente de meilleurs
+indicateurs statistiques, tandis que celle à trois groupes
+offre une interprétation économique plus détaillée.
+
+Troisièmement, les groupes obtenus décrivent des similarités
+statistiques et ne permettent pas, à eux seuls, d'établir
+des relations de causalité.
+
+Enfin, l'étude repose sur les données de l'année 2023 et
+ne permet pas d'analyser directement l'évolution temporelle
+des performances logistiques.
+
+% =================================================
+% CONCLUSION
+% =================================================
+
+\section*{Conclusion générale}
+\addcontentsline{toc}{section}{Conclusion générale}
+
+Ce projet avait pour objectif de regrouper les pays selon
+les six composantes de leur performance logistique à partir
+des données du Logistics Performance Index 2023.
+
+La démarche adoptée a combiné l'exploration des données,
+leur préparation, la standardisation, plusieurs méthodes
+de clustering et l'interprétation économique des résultats.
+
+Le modèle K-Means à trois clusters a permis de distinguer
+trois catégories : faible performance, performance
+intermédiaire et performance élevée.
+
+Bien que la configuration à deux clusters présente de
+meilleurs résultats statistiques, le choix de trois clusters
+a été privilégié pour sa capacité à fournir une segmentation
+plus détaillée et plus exploitable sur le plan économique.
+
+Cette étude montre ainsi l'intérêt des méthodes de Data
+Science pour analyser les différences de performance
+logistique entre les pays et mieux comprendre les enjeux
+associés à la compétitivité du commerce international.
+
+Des recherches futures pourraient intégrer plusieurs années
+de données ou d'autres indicateurs économiques afin
+d'approfondir cette analyse.
+
+% =================================================
+% BIBLIOGRAPHIE
+% =================================================
+
+\newpage
+\begin{thebibliography}{9}
+
+\bibitem{worldbank}
+World Bank.
+\textit{Logistics Performance Index (LPI)}.
+Banque mondiale.
+\url{https://lpi.worldbank.org/}
+
+\bibitem{sklearn}
+Scikit-learn.
+\textit{K-Means clustering}.
+Documentation officielle.
+\url{https://scikit-learn.org/stable/modules/clustering.html}
+
+\bibitem{pca}
+Scikit-learn.
+\textit{Principal Component Analysis (PCA)}.
+Documentation officielle.
+\url{https://scikit-learn.org/stable/modules/decomposition.html}
+
+\bibitem{pandas}
+Pandas.
+\textit{Pandas Documentation}.
+\url{https://pandas.pydata.org/docs/}
+
+\bibitem{numpy}
+NumPy.
+\textit{NumPy Documentation}.
+\url{https://numpy.org/doc/}
+
+\end{thebibliography}
+
+\end{document}
